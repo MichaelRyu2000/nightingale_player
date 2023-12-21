@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +41,6 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
                 ) {
                     PlayerScreen()
                 }
@@ -53,10 +54,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PlayerScreen(modifier: Modifier = Modifier) {
     Scaffold(
-        topBar = { TopAppBar(
-            title = { Text(text = stringResource(R.string.app_name)) }
-        ) },
+        topBar = { AudioTopAppBar() },
         content = { AudioPlayer(modifier = Modifier.fillMaxSize()) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AudioTopAppBar(modifier: Modifier = Modifier) {
+    TopAppBar(
+        title = { Text(text = stringResource(R.string.app_name)) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
     )
 }
 
@@ -78,7 +89,8 @@ fun AudioPlayer(modifier: Modifier = Modifier) {
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_play_circle_outline_24),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(300.dp)
                 )
             }
             IconButton(
@@ -86,7 +98,8 @@ fun AudioPlayer(modifier: Modifier = Modifier) {
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_pause_circle_outline_24),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier.size(300.dp)
                 )
             }
         }
