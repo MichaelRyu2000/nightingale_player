@@ -1,8 +1,10 @@
 package com.example.nightingaleplayer.player.service
 
+import android.content.Intent
 import androidx.media3.common.Player
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.example.nightingaleplayer.player.notification.NpNotificationManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -10,6 +12,14 @@ import javax.inject.Inject
 class NpAudioService: MediaSessionService() {
     @Inject
     lateinit var mediaSession: MediaSession
+
+    @Inject
+    lateinit var notificationManager: NpNotificationManager
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        notificationManager.startNotificationService(this, mediaSession)
+        return super.onStartCommand(intent, flags, startId)
+    }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
