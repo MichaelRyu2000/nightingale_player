@@ -42,7 +42,7 @@ constructor(@ApplicationContext val context: Context) {
     private var selectionArg = arrayOf("1")
 
     // sorting by display names
-    // TODO: Consider adding functionality to filter, figure out if making the sortOrder a function and running the query is efficient or not
+    // TODO: Consider adding functionality to filter, figure out if making the sortOrder a function and running the query again when filter is changed is efficient or not
     private val sortOrder = "${MediaStore.Audio.AudioColumns.DISPLAY_NAME} ASC"
 
     @WorkerThread
