@@ -125,8 +125,8 @@ sealed class PlayerEvent{
 sealed class NpAudioState {
     object Initial: NpAudioState()
     data class Ready(val duration: Long): NpAudioState()
-    data class Progress(val duration: Long): NpAudioState()
-    data class Buffering(val duration: Long): NpAudioState()
+    data class Progress(val progress: Long): NpAudioState()
+    data class Buffering(val progress: Long): NpAudioState()
     data class Playing(val isPlaying: Boolean): NpAudioState()
     data class CurrentPlaying(val mediaItemIndex: Int): NpAudioState()
 }
