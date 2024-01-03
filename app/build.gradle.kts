@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.nightingaleplayer"
-        minSdk = 26
+        minSdk = 33
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -78,6 +78,11 @@ dependencies {
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    // Material Theme (Icons)
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // Jetpack Compose Permissions
+    implementation("com.google.accompanist:accompanist-permissions:0.23.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

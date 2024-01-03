@@ -1,107 +1,112 @@
 package com.example.nightingaleplayer
 
-import android.annotation.SuppressLint
-import android.media.MediaPlayer
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
+import com.example.nightingaleplayer.player.service.NpAudioService
+import com.example.nightingaleplayer.ui.audio.AudioViewModel
+import com.example.nightingaleplayer.ui.audio.HomeScreen
+import com.example.nightingaleplayer.ui.audio.UIEvents
 import com.example.nightingaleplayer.ui.theme.NightingalePlayerTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import dagger.hilt.android.AndroidEntryPoint
+import com.google.accompanist.permissions.rememberPermissionState
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val viewModel: AudioViewModel by viewModels()
+    private var isServiceRunning = false
+    @androidx.annotation.OptIn(UnstableApi::class) @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+
             NightingalePlayerTheme {
+                val audioPermissionState = rememberPermissionState(
+                    permission = android.Manifest.permission.READ_MEDIA_AUDIO // note: needs the android at the beginning
+                )
+
+//                DisposableEffect(key1 = lifecycleOwner) {
+//                    val observer = LifecycleEventObserver {_, event ->
+//                        if (event == Lifecycle.Event.ON_START) {
+//                            Log.d("np", "ON_START called")
+//                            audioPermissionState.launchPermissionRequest()
+//                        }
+//                    }
+//                    lifecycleOwner.lifecycle.addObserver(observer)
+//                    onDispose {
+//                        lifecycleOwner.lifecycle.removeObserver(observer)
+//                    }
+//                }
+
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
                 ) {
-                    PlayerScreen()
+                    when {
+                        audioPermissionState.hasPermission -> {
+                            viewModel.loadAudioData()
+                            HomeScreen(
+                                progress = viewModel.progress,
+                                onProgress = { viewModel.onUiEvents(UIEvents.SeekTo(it)) },
+                                isAudioPlaying = viewModel.isPlaying,
+                                audioList = viewModel.audioList,
+                                currentAudio = viewModel.currentAudio,
+                                onStart = {
+                                    viewModel.onUiEvents(UIEvents.PlayPause)
+                                },
+                                onItemClick = {
+                                    viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))
+                                    startService()
+                                },
+                                onNext = {
+                                    viewModel.onUiEvents(UIEvents.SeekToNext)
+                                }
+                            )
+                        }
+                        else -> {
+                            LaunchedEffect(Unit) {
+                                audioPermissionState.launchPermissionRequest()
+                            }
+                            Box(Modifier.fillMaxSize()) {
+                                Text(text="I exist.")
+                            }
+                        }
+                        }
+                    }
+
                 }
             }
         }
-    }
-}
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PlayerScreen(modifier: Modifier = Modifier) {
-    Scaffold(
-        topBar = { AudioTopAppBar() },
-        content = { AudioPlayer(modifier = Modifier.fillMaxSize()) }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AudioTopAppBar(modifier: Modifier = Modifier) {
-    TopAppBar(
-        title = { Text(text = stringResource(R.string.app_name)) },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-    )
-}
-
-@Composable
-fun AudioPlayer(modifier: Modifier = Modifier) {
-    val musContext = LocalContext.current
-
-    val player = MediaPlayer.create(musContext, R.raw.audio)
-
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .padding(16.dp)
-    ) {
-        Row {
-            IconButton(
-                onClick = { player.start() },
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_play_circle_outline_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp)
-                )
-            }
-            IconButton(
-                onClick = { player.pause() },
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_pause_circle_outline_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(300.dp)
-                )
-            }
+    private fun startService() {
+        if (!isServiceRunning) {
+            val intent = Intent(this, NpAudioService::class.java)
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
+        isServiceRunning = true
     }
 }
+
