@@ -21,6 +21,10 @@ class NpAudioServiceHandler @Inject constructor(
 
     private var job: Job? = null
 
+    init {
+        exoPlayer.addListener(this)
+    }
+
     fun addMediaItem(mediaItem: MediaItem) {
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
@@ -42,6 +46,7 @@ class NpAudioServiceHandler @Inject constructor(
             PlayerEvent.SeekToNext -> exoPlayer.seekToNext()
             PlayerEvent.Stop -> stopProgressUpdate()
             PlayerEvent.Forward -> exoPlayer.seekForward()
+            PlayerEvent.SeekToPrevious -> exoPlayer.seekToPrevious()
             PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
             PlayerEvent.SelectedAudioChange -> {
                 when(selectedAudio) {
@@ -76,7 +81,7 @@ class NpAudioServiceHandler @Inject constructor(
         _audioState.value = NpAudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
         if (isPlaying) {
             // TODO: Below is BAD PRACTICE, change asap
-            GlobalScope.launch(Dispatchers.IO) {
+            GlobalScope.launch(Dispatchers.Main) {
                 startProgressUpdate()
             }
         } else {
@@ -115,6 +120,7 @@ sealed class PlayerEvent{
     object SelectedAudioChange: PlayerEvent()
     object Backward: PlayerEvent()
     object SeekToNext: PlayerEvent()
+    object SeekToPrevious: PlayerEvent()
     object Forward: PlayerEvent()
     object SeekTo: PlayerEvent()
     object Stop: PlayerEvent()

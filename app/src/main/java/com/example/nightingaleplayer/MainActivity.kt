@@ -28,6 +28,7 @@ import com.example.nightingaleplayer.ui.audio.UIEvents
 import com.example.nightingaleplayer.ui.theme.NightingalePlayerTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.accompanist.permissions.rememberPermissionState
 
@@ -39,65 +40,56 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
             NightingalePlayerTheme {
                 val audioPermissionState = rememberPermissionState(
                     permission = android.Manifest.permission.READ_MEDIA_AUDIO // note: needs the android at the beginning
                 )
 
-//                DisposableEffect(key1 = lifecycleOwner) {
-//                    val observer = LifecycleEventObserver {_, event ->
-//                        if (event == Lifecycle.Event.ON_START) {
-//                            Log.d("np", "ON_START called")
-//                            audioPermissionState.launchPermissionRequest()
-//                        }
-//                    }
-//                    lifecycleOwner.lifecycle.addObserver(observer)
-//                    onDispose {
-//                        lifecycleOwner.lifecycle.removeObserver(observer)
-//                    }
-//                }
+                val lifecycleOwner = LocalLifecycleOwner.current
+
+                DisposableEffect(key1 = lifecycleOwner) {
+                    val observer = LifecycleEventObserver {_, event ->
+                        if (event == Lifecycle.Event.ON_START) {
+                            Log.d("np", "ON_START called")
+                            audioPermissionState.launchPermissionRequest()
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                }
 
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    when {
-                        audioPermissionState.hasPermission -> {
-                            viewModel.loadAudioData()
-                            HomeScreen(
-                                progress = viewModel.progress,
-                                onProgress = { viewModel.onUiEvents(UIEvents.SeekTo(it)) },
-                                isAudioPlaying = viewModel.isPlaying,
-                                audioList = viewModel.audioList,
-                                currentAudio = viewModel.currentAudio,
-                                onStart = {
-                                    viewModel.onUiEvents(UIEvents.PlayPause)
-                                },
-                                onItemClick = {
-                                    viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))
-                                    startService()
-                                },
-                                onNext = {
-                                    viewModel.onUiEvents(UIEvents.SeekToNext)
-                                }
-                            )
+                    HomeScreen(
+                        reload = { viewModel.loadAudioData() },
+                        progress = viewModel.progress,
+                        onProgress = { viewModel.onUiEvents(UIEvents.SeekTo(it)) },
+                        isAudioPlaying = viewModel.isPlaying,
+                        audioList = viewModel.audioList,
+                        currentAudio = viewModel.currentAudio,
+                        onStart = {
+                            viewModel.onUiEvents(UIEvents.PlayPause)
+                        },
+                        onItemClick = {
+                            viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))
+                            startService()
+                        },
+                        onNext = {
+                            viewModel.onUiEvents(UIEvents.SeekToNext)
+                        },
+                        onPrevious = {
+                            viewModel.onUiEvents(UIEvents.SeekToPrevious)
                         }
-                        else -> {
-                            LaunchedEffect(Unit) {
-                                audioPermissionState.launchPermissionRequest()
-                            }
-                            Box(Modifier.fillMaxSize()) {
-                                Text(text="I exist.")
-                            }
-                        }
-                        }
-                    }
-
+                    )
                 }
             }
         }
+    }
 
     private fun startService() {
         if (!isServiceRunning) {
@@ -109,4 +101,3 @@ class MainActivity : ComponentActivity() {
         isServiceRunning = true
     }
 }
-

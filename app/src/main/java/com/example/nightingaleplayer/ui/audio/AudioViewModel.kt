@@ -109,6 +109,7 @@ class AudioViewModel @Inject constructor(
             UIEvents.Backward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Backward)
             UIEvents.Forward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Forward)
             UIEvents.SeekToNext -> audioServiceHandler.onPlayerEvents(PlayerEvent.SeekToNext)
+            UIEvents.SeekToPrevious -> audioServiceHandler.onPlayerEvents(PlayerEvent.SeekToPrevious)
             is UIEvents.PlayPause -> {
                 audioServiceHandler.onPlayerEvents(
                     PlayerEvent.PlayPause
@@ -131,8 +132,8 @@ class AudioViewModel @Inject constructor(
                     PlayerEvent.UpdateProgress(
                         uiEvents.newProgress
                     ),
-
                 )
+                progress = uiEvents.newProgress
             }
         }
     }
@@ -141,6 +142,13 @@ class AudioViewModel @Inject constructor(
         val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
         val seconds = (duration / 1000L) % 60L
         return String.format("%02d:%02d", minute, seconds)
+    }
+
+    override fun onCleared() {
+        viewModelScope.launch {
+            audioServiceHandler.onPlayerEvents(PlayerEvent.Stop)
+        }
+        super.onCleared()
     }
 }
 
@@ -151,6 +159,7 @@ sealed class UIEvents{
     data class SelectedAudioChange(val index: Int): UIEvents()
     data class SeekTo(val position: Float): UIEvents()
     object SeekToNext: UIEvents()
+    object SeekToPrevious: UIEvents()
     object Backward: UIEvents()
     object Forward: UIEvents()
     data class UpdateProgress(val newProgress: Float): UIEvents()
