@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -36,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -327,10 +325,10 @@ fun HomeScreenPreview() {
             onProgress = {},
             isAudioPlaying = true,
             audioList = listOf(
-                Audio("".toUri(), "display 1", 0L, "artist 1", "title 1", "", 0),
-                Audio("".toUri(), "display 2", 0L, "artist 2", "title 2", "", 0)
+                Audio("", "display 1", 0L, "artist 1", "title 1", "", 0),
+                Audio("", "display 2", 0L, "artist 2", "title 2", "", 0)
             ),
-            currentAudio = Audio("".toUri(), "display 1", 0L, "artist 1", "title 1", "", 0),
+            currentAudio = Audio("", "display 1", 0L, "artist 1", "title 1", "", 0),
             onStart = {},
             onNext = {},
             onItemClick = {},

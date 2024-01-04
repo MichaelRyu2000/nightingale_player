@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
+                    startService()
                     HomeScreen(
                         reload = { viewModel.loadAudioData() },
                         progress = viewModel.progress,
@@ -77,7 +78,6 @@ class MainActivity : ComponentActivity() {
                         },
                         onItemClick = {
                             viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))
-                            startService()
                         },
                         onNext = {
                             viewModel.onUiEvents(UIEvents.SeekToNext)
@@ -95,8 +95,6 @@ class MainActivity : ComponentActivity() {
         if (!isServiceRunning) {
             val intent = Intent(this, NpAudioService::class.java)
             startForegroundService(intent)
-        } else {
-            startService(intent)
         }
         isServiceRunning = true
     }

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private val initialAudio = Audio(
-    "".toUri(), "", 0, "", "", "", 0
+    "", "", 0, "", "", "", 0
 )
 
 @HiltViewModel
