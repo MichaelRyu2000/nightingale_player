@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.example.nightingaleplayer.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -111,6 +112,7 @@ class NpNotificationManager @Inject constructor(
             // Glide is media management and image loading framework
             Glide.with(context).asBitmap()
                 .load(player.mediaMetadata.artworkUri)
+                .fallback(R.drawable.missing_image)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(object: CustomTarget<Bitmap>(){
                     override fun onResourceReady(
