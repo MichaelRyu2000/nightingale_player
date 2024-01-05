@@ -1,7 +1,9 @@
 package com.example.nightingaleplayer
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,9 +38,12 @@ import com.google.accompanist.permissions.rememberPermissionState
 class MainActivity : ComponentActivity() {
     private val viewModel: AudioViewModel by viewModels()
     private var isServiceRunning = false
+    @SuppressLint("SourceLockedOrientationActivity")
     @androidx.annotation.OptIn(UnstableApi::class) @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR)
         setContent {
             NightingalePlayerTheme {
                 val audioPermissionState = rememberPermissionState(

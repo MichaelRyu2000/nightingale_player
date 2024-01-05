@@ -81,7 +81,6 @@ class NpNotificationManager @Inject constructor(
                 it.setPriority(NotificationCompat.PRIORITY_LOW)
                 it.setPlayer(exoPlayer)
             }
-
     }
 
     private fun createNotificationChannel() {
