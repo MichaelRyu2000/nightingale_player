@@ -1,7 +1,9 @@
 package com.example.nightingaleplayer
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -36,15 +38,18 @@ import com.google.accompanist.permissions.rememberPermissionState
 class MainActivity : ComponentActivity() {
     private val viewModel: AudioViewModel by viewModels()
     private var isServiceRunning = false
+    @SuppressLint("SourceLockedOrientationActivity")
     @androidx.annotation.OptIn(UnstableApi::class) @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR)
         setContent {
             NightingalePlayerTheme {
                 val audioPermissionState = rememberPermissionState(
                     permission = android.Manifest.permission.READ_MEDIA_AUDIO // note: needs the android at the beginning
                 )
-
+                val intent = Intent(this, NpAudioService::class.java)
                 val lifecycleOwner = LocalLifecycleOwner.current
 
                 DisposableEffect(key1 = lifecycleOwner) {
@@ -52,6 +57,9 @@ class MainActivity : ComponentActivity() {
                         if (event == Lifecycle.Event.ON_START) {
                             Log.d("np", "ON_START called")
                             audioPermissionState.launchPermissionRequest()
+                        } else if (event == Lifecycle.Event.ON_DESTROY) {
+                            Log.d("np", "ON_DESTROY called (Main Activity)")
+                            stopService(intent)
                         }
                     }
                     lifecycleOwner.lifecycle.addObserver(observer)
@@ -65,7 +73,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    startService()
+                    startAudioService(intent)
                     HomeScreen(
                         reload = { viewModel.loadAudioData() },
                         progress = viewModel.progress,
@@ -91,9 +99,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startService() {
+    private fun startAudioService(intent: Intent) {
         if (!isServiceRunning) {
-            val intent = Intent(this, NpAudioService::class.java)
+
             startForegroundService(intent)
         }
         isServiceRunning = true
