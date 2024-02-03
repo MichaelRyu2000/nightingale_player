@@ -1,7 +1,12 @@
 package com.example.nightingaleplayer.ui.audio
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +41,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -123,18 +130,21 @@ fun RefreshItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AudioItem(
     audio: Audio,
     onItemClick: () -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() };
     Card(
+        onClick = {
+            onItemClick()
+            focusRequester.requestFocus()
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
-            .clickable {
-                onItemClick()
-            }
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
@@ -151,7 +161,11 @@ fun AudioItem(
                     text = audio.displayName,
                     style = MaterialTheme.typography.titleLarge,
                     overflow = TextOverflow.Clip,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .basicMarquee(animationMode = MarqueeAnimationMode.WhileFocused)
+                        .focusRequester(focusRequester)
+                        .focusable()
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
@@ -206,7 +220,6 @@ fun BottomAppPlayer(
                         onNext,
                         onPrevious
                     )
-
                     Slider(
                         value = progress,
                         onValueChange = { onProgress(it) },
