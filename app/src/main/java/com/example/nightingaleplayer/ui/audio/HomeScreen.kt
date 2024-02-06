@@ -1,26 +1,30 @@
 package com.example.nightingaleplayer.ui.audio
 
-import android.media.MediaPlayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -46,11 +50,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
+import androidx.media3.common.util.UnstableApi
 import com.example.nightingaleplayer.data.local.model.Audio
 import com.example.nightingaleplayer.ui.theme.NightingalePlayerTheme
 import kotlin.math.floor
@@ -144,11 +150,11 @@ fun AudioItem(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(12.dp)
+            .padding(6.dp)
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(4.dp)
         ){
             Column(
                 modifier = Modifier
@@ -156,7 +162,12 @@ fun AudioItem(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.size(4.dp))
+                Spacer(modifier = Modifier.size(2.dp))
+                /* TODO
+                * Focus doesn't switch to CURRENT PLAYING SONG
+                * It will stay to whichever was focused by the user from the start
+                *
+                */
                 Text(
                     text = audio.displayName,
                     style = MaterialTheme.typography.titleLarge,
@@ -178,7 +189,7 @@ fun AudioItem(
             Text(
                 text = timestampToDuration(audio.duration.toLong())
             )
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(4.dp))
         }
     }
 }
@@ -191,6 +202,99 @@ private fun timestampToDuration(position: Long): String {
     else "%d:%02d".format(minutes, remainingSeconds)
 }
 
+// Overload function looks for float values from 0 to 100 inclusive (percentages)
+// Meant to be used to get current timestamp of song
+private fun timestampToDuration(position: Float, duration: Long): String {
+    val totalSeconds = floor(duration / 1E3).toInt()
+    val currentSeconds = floor(totalSeconds * position / 100.0).toInt()
+    val minutes = currentSeconds / 60
+    val remainingSeconds = currentSeconds - (minutes * 60)
+    return if (position < 0) "--:--"
+    else "%d:%02d".format(minutes, remainingSeconds)
+}
+
+@Composable
+fun SliderLabel(
+    label: String,
+    minWidth: Dp,
+    modifier: Modifier = Modifier,
+    offset: Dp
+) {
+    Text(
+        text = label,
+        textAlign = TextAlign.Center,
+        color = Color.White,
+        overflow = TextOverflow.Visible,
+        maxLines = 1,
+        modifier = Modifier
+            .offset(x = offset)
+            .background(
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(4.dp)
+            .defaultMinSize(minWidth = minWidth)
+
+    )
+}
+
+// https://www.devbitsandbytes.com/jetpack-compose-configuring-slider-with-label/
+
+/* TODO
+*  Issue where on the first song when starting the app, since audio duration is not found, moving
+*  slider won't update the current timestamp label
+*
+* */
+private fun getSliderOffset(
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    boxWidth: Dp,
+    labelWidth: Dp,
+): Dp {
+    val coerced = value.coerceIn(valueRange.start, valueRange.endInclusive)
+    val positionFraction = calcFraction(valueRange.start, valueRange.endInclusive, coerced)
+
+    return (boxWidth - labelWidth) * positionFraction
+}
+
+private fun calcFraction(a: Float, b: Float, pos: Float) =
+    (if (b - a == 0f) 0f else (pos - a) / (b - a)).coerceIn(0f, 1f)
+
+@androidx.annotation.OptIn(UnstableApi::class) @Composable
+fun CustomSliderWithLabel(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    labelMinWidth: Dp = 24.dp,
+    duration: Long,
+) {
+    Column(modifier = Modifier.fillMaxWidth(0.9F)) {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val offset = getSliderOffset(
+                value = value,
+                valueRange = valueRange,
+                boxWidth = maxWidth,
+                labelWidth = labelMinWidth + 8.dp
+            )
+            SliderLabel(
+                label = timestampToDuration(value, duration),
+                minWidth = labelMinWidth,
+                offset = offset
+            )
+        }
+        Spacer(modifier = Modifier.padding(2.dp))
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 10.dp)
+        )
+    }
+}
 
 @Composable
 fun BottomAppPlayer(
@@ -211,7 +315,7 @@ fun BottomAppPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically,
                 ){
                     MediaPlayer(
@@ -220,10 +324,11 @@ fun BottomAppPlayer(
                         onNext,
                         onPrevious
                     )
-                    Slider(
+                    CustomSliderWithLabel(
                         value = progress,
                         onValueChange = { onProgress(it) },
-                        valueRange = 0f..100f
+                        valueRange = 0f..100f,
+                        duration = audio.duration.toLong(),
                     )
                 }
             }
@@ -241,8 +346,8 @@ fun MediaPlayer(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .height(56.dp)
-            .padding(4.dp)
+            .height(42.dp)
+            .padding(2.dp)
     ) {
         Icon(
             imageVector = Icons.Default.SkipPrevious,
