@@ -25,6 +25,10 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+/*
+* NOTE
+* May be a cause of the issue regarding focus and current timestamp not updating correctly
+* */
 private val initialAudio = Audio(
     "", "", 0, "", "", "", 0
 )

@@ -6,7 +6,6 @@ import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,8 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -99,7 +96,10 @@ fun HomeScreen (
                 itemsIndexed(audioList) {index, audio ->
                     AudioItem(
                         audio = audio,
-                        onItemClick = { onItemClick(index) }
+                        currentAudio = currentAudio,
+                        onItemClick = {
+                            onItemClick(index)
+                        }
                     )
                 }
             }
@@ -140,13 +140,12 @@ fun RefreshItem(
 @Composable
 fun AudioItem(
     audio: Audio,
-    onItemClick: () -> Unit
+    currentAudio: Audio,
+    onItemClick: () -> Unit,
 ) {
-    val focusRequester = remember { FocusRequester() };
     Card(
         onClick = {
             onItemClick()
-            focusRequester.requestFocus()
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -163,20 +162,13 @@ fun AudioItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Spacer(modifier = Modifier.size(2.dp))
-                /* TODO
-                * Focus doesn't switch to CURRENT PLAYING SONG
-                * It will stay to whichever was focused by the user from the start
-                *
-                */
                 Text(
                     text = audio.displayName,
                     style = MaterialTheme.typography.titleLarge,
                     overflow = TextOverflow.Clip,
                     maxLines = 1,
-                    modifier = Modifier
-                        .basicMarquee(animationMode = MarqueeAnimationMode.WhileFocused)
-                        .focusRequester(focusRequester)
-                        .focusable()
+                    modifier = if (audio.uri == currentAudio.uri) Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                    else Modifier
                 )
                 Spacer(modifier = Modifier.size(4.dp))
                 Text(
@@ -244,6 +236,9 @@ fun SliderLabel(
 *  Issue where on the first song when starting the app, since audio duration is not found, moving
 *  slider won't update the current timestamp label
 *
+*
+* TODO
+*  CHECK IF ITS CALLING THIS LITERALLY EVERY TICK!!!!!!!!!!!!!!!!!!!!!!!
 * */
 private fun getSliderOffset(
     value: Float,
