@@ -167,7 +167,7 @@ fun AudioItem(
                     style = MaterialTheme.typography.titleLarge,
                     overflow = TextOverflow.Clip,
                     maxLines = 1,
-                    modifier = if (audio.uri == currentAudio.uri) Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                    modifier = if (audio.uri == currentAudio.uri) Modifier.basicMarquee(animationMode = MarqueeAnimationMode.Immediately) // note: if a word does not fit within the box, the whole word and everything after is cut off now
                     else Modifier
                 )
                 Spacer(modifier = Modifier.size(4.dp))
