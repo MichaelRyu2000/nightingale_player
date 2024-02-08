@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
                             viewModel.onUiEvents(UIEvents.PlayPause)
                         },
                         onItemClick = {
-                            viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))
+                            viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))   // commenting this out allows AudioItem's to skip recomposition
                         },
                         onNext = {
                             viewModel.onUiEvents(UIEvents.SeekToNext)

@@ -53,12 +53,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.example.nightingaleplayer.data.local.model.Audio
 import com.example.nightingaleplayer.ui.theme.NightingalePlayerTheme
 import kotlin.math.floor
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// consider https://patilshreyas.github.io/compose-report-to-html/
+// and https://medium.com/@patilshreyas/solving-the-mystery-of-recompositions-in-composes-lazylist-514d187079b9
+
+@androidx.annotation.OptIn(UnstableApi::class) @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen (
     reload: () -> Unit,
@@ -97,9 +102,8 @@ fun HomeScreen (
                     AudioItem(
                         audio = audio,
                         currentAudio = currentAudio,
-                        onItemClick = {
-                            onItemClick(index)
-                        }
+                        index = index,
+                        onItemClick = onItemClick
                     )
                 }
             }
@@ -136,16 +140,18 @@ fun RefreshItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+// recomposition occurs here A LOT, when audio is playing
+@androidx.annotation.OptIn(UnstableApi::class) @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AudioItem(
     audio: Audio,
     currentAudio: Audio,
-    onItemClick: () -> Unit,
+    index: Int,
+    onItemClick: (Int) -> Unit,
 ) {
     Card(
         onClick = {
-            onItemClick()
+            onItemClick(index)
         },
         modifier = Modifier
             .fillMaxWidth()

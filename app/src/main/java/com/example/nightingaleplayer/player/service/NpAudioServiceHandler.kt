@@ -1,7 +1,10 @@
 package com.example.nightingaleplayer.player.service
 
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -35,7 +38,7 @@ class NpAudioServiceHandler @Inject constructor(
         exoPlayer.prepare()
     }
 
-    suspend fun onPlayerEvents(
+    @OptIn(UnstableApi::class) suspend fun onPlayerEvents(
         playerEvent: PlayerEvent,
         selectedAudio: Int = -1,
         seekPosition: Long = 0
