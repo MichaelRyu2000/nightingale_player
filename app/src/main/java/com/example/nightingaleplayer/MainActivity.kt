@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     startAudioService(intent)
+                    
                     HomeScreen(
                         reload = { viewModel.loadAudioData() },
                         progress = viewModel.progress,
