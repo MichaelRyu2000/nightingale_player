@@ -50,11 +50,11 @@ class NpAudioServiceHandler @Inject constructor(
             PlayerEvent.Stop -> stopProgressUpdate()
             PlayerEvent.Forward -> exoPlayer.seekForward()
             PlayerEvent.SeekToPrevious -> exoPlayer.seekToPrevious()
-            PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
+            PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition) // seekTo gets called (if i remember correctly) when song ends "naturally", but it does not update current audio? or cause recomposition? consider adding more to this function to check if song ends then update viewmodel
             PlayerEvent.SelectedAudioChange -> {
                 when(selectedAudio) {
                     exoPlayer.currentMediaItemIndex -> {
-                        playOrPause()
+                      //   playOrPause()
                     }
                     else -> {
                         exoPlayer.seekToDefaultPosition(selectedAudio)

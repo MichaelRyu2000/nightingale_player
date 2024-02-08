@@ -77,34 +77,39 @@ fun HomeScreen (
     onNext: () -> Unit,
     onPrevious: () -> Unit
 ) {
-    if (audioList.isEmpty()) {
-        RefreshItem (
-            onReload = reload
-        )
-    } else {
-        Scaffold(
-            bottomBar = {
-                BottomAppPlayer(
-                    progress = progress,
-                    onProgress = onProgress,
-                    audio = currentAudio,
-                    isAudioPlaying = isAudioPlaying,
-                    onStart = onStart,
-                    onNext = onNext,
-                    onPrevious = onPrevious
-                )
-            }
-        ) {
-            LazyColumn(
-                contentPadding = it
-            ) {
-                itemsIndexed(audioList) {index, audio ->
-                    AudioItem(
-                        audio = audio,
-                        currentAudio = currentAudio,
-                        index = index,
-                        onItemClick = onItemClick
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        if (audioList.isEmpty()) {
+            RefreshItem(
+                onReload = reload
+            )
+        } else {
+            Scaffold(
+                bottomBar = {
+                    BottomAppPlayer(
+                        progress = progress,
+                        onProgress = onProgress,
+                        audio = currentAudio,
+                        isAudioPlaying = isAudioPlaying,
+                        onStart = onStart,
+                        onNext = onNext,
+                        onPrevious = onPrevious
                     )
+                }
+            ) {
+                LazyColumn(
+                    contentPadding = it
+                ) {
+                    itemsIndexed(audioList) { index, audio ->
+                        AudioItem(
+                            audio = audio,
+                            currentAudio = currentAudio,
+                            index = index,
+                            onItemClick = onItemClick
+                        )
+                    }
                 }
             }
         }
@@ -153,6 +158,7 @@ fun AudioItem(
         onClick = {
             onItemClick(index)
         },
+        // consider onClick = remember {} either here somehow or in MainActivity/AppNavHost
         modifier = Modifier
             .fillMaxWidth()
             .padding(6.dp)

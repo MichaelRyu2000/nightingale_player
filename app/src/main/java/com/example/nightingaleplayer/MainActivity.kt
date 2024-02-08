@@ -23,10 +23,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.compose.rememberNavController
 import com.example.nightingaleplayer.player.service.NpAudioService
 import com.example.nightingaleplayer.ui.audio.AudioViewModel
 import com.example.nightingaleplayer.ui.audio.HomeScreen
 import com.example.nightingaleplayer.ui.audio.UIEvents
+import com.example.nightingaleplayer.ui.nav.AppNavHost
 import com.example.nightingaleplayer.ui.theme.NightingalePlayerTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -68,34 +70,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    startAudioService(intent)
-                    
-                    HomeScreen(
-                        reload = { viewModel.loadAudioData() },
-                        progress = viewModel.progress,
-                        onProgress = { viewModel.onUiEvents(UIEvents.SeekTo(it)) },
-                        isAudioPlaying = viewModel.isPlaying,
-                        audioList = viewModel.audioList,
-                        currentAudio = viewModel.currentAudio,
-                        onStart = {
-                            viewModel.onUiEvents(UIEvents.PlayPause)
-                        },
-                        onItemClick = {
-                            viewModel.onUiEvents(UIEvents.SelectedAudioChange(it))   // commenting this out allows AudioItem's to skip recomposition
-                        },
-                        onNext = {
-                            viewModel.onUiEvents(UIEvents.SeekToNext)
-                        },
-                        onPrevious = {
-                            viewModel.onUiEvents(UIEvents.SeekToPrevious)
-                        }
-                    )
-                }
+                startAudioService(intent)
+                val navController = rememberNavController()
+                AppNavHost(
+                    viewModel = viewModel,
+                    navController = navController,
+                )
             }
         }
     }
